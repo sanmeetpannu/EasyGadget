@@ -57,7 +57,7 @@ That's it! EasyGadget is now ready to use in Termux. 🎉
 To use EasyGadget, run the following command in Termux:
 
 ```
-python easygadget.py -a /path/to/your/app.apk --arch [architecture] [options]
+python main.py -a /path/to/your/app.apk --arch [architecture] [options]
 ```
 
 ### Options:
@@ -70,7 +70,7 @@ python easygadget.py -a /path/to/your/app.apk --arch [architecture] [options]
 ### Example:
 
 ```
-python easygadget.py -a /sdcard/Download/myapp.apk --arch arm64-v8a --script myscript.js
+python main.py -a /sdcard/Download/myapp.apk --arch arm64-v8a --script myscript.js
 ```
 
 This command will patch `myapp.apk` for the arm64-v8a architecture, including `myscript.js` in the patched APK.
