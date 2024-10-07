@@ -4,7 +4,7 @@
 pkg update && pkg upgrade -y
 
 # Install required packages
-pkg install -y wget python openjdk-17 android-tools apksigner xz-utils aapt
+pkg install -y wget python openjdk-17 android-tools apksigner xz-utils aapt termux-tools
 
 # Download and set up apktool
 wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O $PREFIX/bin/apktool.jar
@@ -68,3 +68,9 @@ echo "- keytool (part of openjdk-17)"
 echo "- apksigner"
 echo "Frida gadgets have been downloaded to $GADGET_DIR"
 echo "A debug keystore has been created at debug.keystore"
+
+# Open the Telegram channel link
+echo "Opening Telegram channel..."
+termux-open-url "https://t.me/primes_era"
+
+echo "Installation complete! Join our Telegram channel for updates and support."
