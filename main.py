@@ -84,52 +84,71 @@ def get_main_activity(manifest_path):
 
 def insert_frida_loader(smali_file_path):
     print("Inserting Frida loader...", end=' ', flush=True)
-    full_clinit_method = '''
-.method public static constructor <clinit>()V
-    .registers 1
-
-    .line 1
+    frida_load_code = '''
     const-string v0, "frida"
-
-    .line 3
     invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
-
-    .line 6
-    return-void
-.end method
-    '''
-
-    partial_clinit_method = '''
-    .line 1
-    const-string v0, "frida"
-
-    .line 3
-    invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
-    '''
+'''
 
     try:
         with open(smali_file_path, 'r') as smali_file:
             content = smali_file.readlines()
 
+        new_content = []
         clinit_found = False
-        for index, line in enumerate(content):
-            if line.strip().startswith('.method static constructor <clinit>()V'):
+        frida_loader_added = False
+
+        for idx, line in enumerate(content):
+            new_content.append(line)
+
+            # Log each line read from the file
+            print(f"Processing line {idx + 1}: {line.strip()}")
+
+            # Check if the current line defines the <clinit> method
+            if line.strip().startswith('.method public static constructor <clinit>()V'):
+                print(f"[LOG] Found <clinit> at line {idx + 1}")
                 clinit_found = True
-                content.insert(index + 1, partial_clinit_method)
-                break
+                # Add the Frida load code right after the method definition
+                new_content.append(frida_load_code)
+                frida_loader_added = True
+                print(f"[LOG] Frida load code added at line {idx + 2}")
 
+            elif clinit_found and line.strip() == '.end method':
+                # Insert the Frida loader just before the end of the method if missed
+                print(f"[LOG] Reached end of <clinit> at line {idx + 1}. Adding Frida code before .end method")
+                if not frida_loader_added:  # Check if it was already added
+                    new_content.insert(-1, frida_load_code)
+                    frida_loader_added = True
+
+        # If <clinit> method was not found, create it
         if not clinit_found:
-            content.append(full_clinit_method)
+            print("[LOG] <clinit> method not found, creating new one")
+            new_clinit_method = f'''
+.method public static constructor <clinit>()V
+    .registers 1
+{frida_load_code}
+    return-void
+.end method
+'''
+            new_content.append(new_clinit_method)
+            frida_loader_added = True
+            print("[LOG] New <clinit> method with Frida load code added at the end of the file")
 
-        with open(smali_file_path, 'w') as smali_file:
-            smali_file.writelines(content)
-        
-        print("Success")
-        return True
+        # Write the changes back to the file if any modifications were made
+        if frida_loader_added:
+            with open(smali_file_path, 'w') as smali_file:
+                smali_file.writelines(new_content)
+            print("[SUCCESS] Frida loader inserted successfully")
+            return True
+        else:
+            print("[ERROR] Failed to add Frida loader")
+            log_error("Could not find appropriate location to insert Frida loader")
+            return False
+
     except Exception as e:
-        print("Failed")
+        print(f"[ERROR] Exception occurred: {e}")
         log_error(f"Failed to insert Frida loader: {e}")
         return False
+
 
 def copy_frida_libs(gadget_dir, output_dir, target_arch):
     print("Copying Frida libraries...", end=' ', flush=True)
@@ -280,3 +299,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+        
