@@ -59,12 +59,12 @@ for arch in "${!architectures[@]}"; do
 done
 
 # Create a debug keystore for signing APKs
-keytool -genkey -v -keystore $HOME/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
 echo "Setup complete. The following tools have been installed:"
 echo "- apktool"
-echo "- aapt (part of android-tools)"
+echo "- aapt "
 echo "- keytool (part of openjdk-17)"
 echo "- apksigner"
 echo "Frida gadgets have been downloaded to $GADGET_DIR"
-echo "A debug keystore has been created at $HOME/debug.keystore"
+echo "A debug keystore has been created at debug.keystore"
