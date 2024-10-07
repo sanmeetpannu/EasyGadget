@@ -17,10 +17,11 @@ This tool is perfect for developers, security researchers, and reverse engineers
 ### Prerequisites
 
 - Termux app installed on your Android device
+- Termux:API add-on (for accessing Android system APIs)
 
 ### Installation
 
-1. Install Termux from the Google Play Store or F-Droid.
+1. Install Termux and Termux:API from the Google Play Store or F-Droid.
 
 2. Open Termux and run the following commands:
 
@@ -90,6 +91,11 @@ If you encounter any issues:
 ## Developer 👨‍💻
 
 EasyGadget is developed and maintained by Sannmeet Pannu.
+
+- Telegram Channel: [Primes Era](https://t.me/primes_era)
+- Contact: [Sannmeet Pannu on Telegram](https://t.me/sanmeet_pannu)
+
+Feel free to join the Telegram channel for updates, tips, and discussions related to EasyGadget and mobile security!
 
 ## Contributing 🤝
 
