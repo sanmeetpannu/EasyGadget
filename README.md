@@ -32,7 +32,7 @@ This tool is perfect for developers, security researchers, and reverse engineers
 
 3. Clone the repository:
    ```
-   git clone https://github.com/yourusername/easygadget.git
+   git clone https://github.com/sanmeetpannu/easygadget.git
    cd easygadget
    ```
 
