@@ -206,6 +206,15 @@ def sign_apk(apk_path, show_logs=False):
     success, output = run_command(apksigner_cmd, show_logs)
     print("Success" if success else "Failed")
     return success
+def cleanup(temp_dir):
+    print("Cleaning up temporary files...", end=' ', flush=True)
+    try:
+        shutil.rmtree(temp_dir)
+        print("Success")
+    except Exception as e:
+        print("Failed")
+        log_error(f"Failed to clean up temporary files: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description='EasyGadget: Patch APKs with Frida for easy instrumentation')
     parser.add_argument('-a', '--apk', required=True, help='Path to the APK file to patch')
@@ -224,43 +233,50 @@ def main():
         log_error("Please install these tools manually before running the script.")
         sys.exit(1)
     
-    with tempfile.TemporaryDirectory() as temp_dir:
-        if decompile_apk(args.apk, temp_dir, with_resources=True, show_logs=args.logs):
-            manifest_path = os.path.join(temp_dir, "AndroidManifest.xml")
-            main_activity = get_main_activity(manifest_path)
-            
-            if main_activity:
-                log_info(f"Main activity: {main_activity}")
-                
-                if decompile_apk(args.apk, temp_dir, with_resources=False, show_logs=args.logs):
-                    activity_smali_path = os.path.join(temp_dir, 'smali', main_activity.replace('.', '/')) + '.smali'
-                    
-                    if insert_frida_loader(activity_smali_path):
-                        gadget_directory = os.path.join(os.path.dirname(__file__), 'gadget')
-                        if copy_frida_libs(gadget_directory, temp_dir, args.arch):
-                            if args.script:
-                                if not copy_and_rename_script(args.script, temp_dir, args.arch):
-                                    return
+    temp_dir = tempfile.mkdtemp()
+    try:
+        if not decompile_apk(args.apk, temp_dir, with_resources=True, show_logs=args.logs):
+            raise Exception("Failed to decompile APK with resources")
 
-                            apk_name = os.path.basename(args.apk)
-                            output_apk = os.path.join(os.path.dirname(args.apk), f"{os.path.splitext(apk_name)[0]}_mod.apk")
-                            if recompile_apk(temp_dir, output_apk, show_logs=args.logs):
-                                if sign_apk(output_apk, show_logs=args.logs):
-                                    log_success(f"Successfully patched APK: {output_apk}")
-                                else:
-                                    log_error("Failed to sign the APK.")
-                            else:
-                                log_error("Failed to recompile the APK.")
-                        else:
-                            log_error("Failed to copy Frida libraries.")
-                    else:
-                        log_error("Failed to insert Frida loader.")
-                else:
-                    log_error("Failed to decompile APK without resources.")
-            else:
-                log_error("Could not find the main activity.")
-        else:
-            log_error("Failed to decompile APK with resources.")
+        manifest_path = os.path.join(temp_dir, "AndroidManifest.xml")
+        main_activity = get_main_activity(manifest_path)
+        
+        if not main_activity:
+            raise Exception("Could not find the main activity")
+
+        log_info(f"Main activity: {main_activity}")
+        
+        if not decompile_apk(args.apk, temp_dir, with_resources=False, show_logs=args.logs):
+            raise Exception("Failed to decompile APK without resources")
+
+        activity_smali_path = os.path.join(temp_dir, 'smali', main_activity.replace('.', '/')) + '.smali'
+        
+        if not insert_frida_loader(activity_smali_path):
+            raise Exception("Failed to insert Frida loader")
+
+        gadget_directory = os.path.join(os.path.dirname(__file__), 'gadget')
+        if not copy_frida_libs(gadget_directory, temp_dir, args.arch):
+            raise Exception("Failed to copy Frida libraries")
+
+        if args.script:
+            if not copy_and_rename_script(args.script, temp_dir, args.arch):
+                raise Exception("Failed to copy and rename script")
+
+        apk_name = os.path.basename(args.apk)
+        output_apk = os.path.join(os.path.dirname(args.apk), f"{os.path.splitext(apk_name)[0]}_mod.apk")
+        
+        if not recompile_apk(temp_dir, output_apk, show_logs=args.logs):
+            raise Exception("Failed to recompile the APK")
+
+        if not sign_apk(output_apk, show_logs=args.logs):
+            raise Exception("Failed to sign the APK")
+
+        log_success(f"Successfully patched APK: {output_apk}")
+
+    except Exception as e:
+        log_error(str(e))
+    finally:
+        cleanup(temp_dir)
 
 if __name__ == "__main__":
     main()
