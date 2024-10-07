@@ -17,11 +17,10 @@ This tool is perfect for developers, security researchers, and reverse engineers
 ### Prerequisites
 
 - Termux app installed on your Android device
-- Termux:API add-on (for accessing Android system APIs)
 
 ### Installation
 
-1. Install Termux and Termux:API from the Google Play Store or F-Droid.
+1. Install Termux from the Google Play Store or F-Droid.
 
 2. Open Termux and run the following commands:
 
